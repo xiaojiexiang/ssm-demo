@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/context
+                http://www.springframework.org/schema/context/spring-context.xsd
+            ">
+    <!--1 加载数据库配置文件-->
+    <context:property-placeholder location="classpath:db.properties"/>
+    <!--2 添加数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <!--数据库连接池的主属性-->
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <!--调优属性-->
+        <!--默认情况下，事务是自动提交，修改为手动提交事务-->
+        <property name="defaultAutoCommit" value="false"/>
+        <!--以后到单位，这块会很多其他相关属性调优，你和运维人员进行沟通填写-->
+    </bean>
+    <!--3 创建mybatis的会话工厂-->
+    <!--mybatis-spring 用途，里面关键的类  用途：mybatis和spring整合包，常见类SqlSessionFactoryBean-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--注入数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--注入mybatis的主配置文件-->
+        <property name="configLocation" value="classpath:mybatis/mybatis-config.xml"/>
+        <!--自动扫描dao里面的所有的Mapper.xml-->
+        <property name="mapperLocations" value="classpath*:com/qf/demo/dao/*Mapper.xml"/>
+    </bean>
+    <!--4 配置扫描DAO层接口，配置了这个类之后就不需要再对接口进行实现(不需要再写接口的实现类)-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--注入会话工厂-->
+        <!--这里一定要使用value，而不能使用引用的ref-->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        <!--DAO层所在的包-->
+        <property name="basePackage" value="com.qf.demo.dao"/>
+    </bean>
+
+</beans>
